@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HázDoki – Gyors Hibaelhárítás</title>
+    <meta name="description" content="Gyors és megbízható víz-, fűtés-, villany- és lakatosszolgáltatások XVII. kerületben és környékén. 24 órán belüli kiszállás, számlával és munkalappal.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Raleway:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --green:        #4a7c59;
+            --green-dark:   #2d5a3d;
+            --green-light:  #82b896;
+            --green-muted:  #eef5f1;
+            --red:          #d62839;
+            --dark:         #141420;
+            --dark2:        #1e1e30;
+            --grey:         #6b7280;
+            --light:        #f9fafb;
+            --cream:        #f5f0e8;
+            --white:        #ffffff;
+            --font-h:       'Raleway', sans-serif;
+            --font-b:       'Poppins', sans-serif;
+            --r:            14px;
+            --sh:           0 4px 24px rgba(0,0,0,.09);
+            --sh2:          0 12px 40px rgba(0,0,0,.15);
+            --tr:           .3s ease;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-b);
+            color: var(--dark);
+            background: var(--white);
+            overflow-x: hidden;
+        }
+
+        img { display: block; max-width: 100%; }
+
+        .wrap       { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+        .sec-label  { display:block; font-size:.75rem; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--green); margin-bottom:.6rem; }
+        .sec-title  { font-family:var(--font-h); font-size:clamp(1.9rem,4vw,3rem); font-weight:900; line-height:1.15; }
+        .sec-sub    { color:var(--grey); font-size:1rem; line-height:1.8; margin-top:.75rem; max-width:560px; }
+
+        .reveal { opacity:0; transform:translateY(28px); transition:opacity .65s ease, transform .65s ease; }
+        .reveal.in { opacity:1; transform:none; }
+
+        #nav {
+            position: fixed; inset: 0 0 auto 0; z-index: 900;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: .9rem 1.5rem;
+            background: rgba(255,255,255,.92);
+            backdrop-filter: blur(14px);
+            box-shadow: 0 2px 16px rgba(0,0,0,.07);
+            transition: var(--tr);
+        }
+
+        .nav-logo {
+            font-family: var(--font-h); font-size: 1.45rem; font-weight: 900;
+            color: var(--green); text-decoration: none;
+        }
+        .nav-logo em { color: var(--red); font-style: normal; }
+
+        .nav-links { display:flex; gap:1.75rem; list-style:none; align-items:center; }
+        .nav-links a {
+            text-decoration: none; color: var(--dark); font-size: .88rem; font-weight: 500;
+            position: relative; transition: var(--tr);
+        }
+        .nav-links a::after {
+            content:''; position:absolute; bottom:-4px; left:0; width:0; height:2px;
+            background:var(--green); transition: var(--tr);
+        }
+        .nav-links a:hover { color: var(--green); }
+        .nav-links a:hover::after { width:100%; }
+
+        .nav-cta {
+            background: var(--green) !important; color: var(--white) !important;
+            padding: .5rem 1.4rem; border-radius:50px;
+        }
+        .nav-cta::after { display:none !important; }
+        .nav-cta:hover { background: var(--green-dark) !important; transform:translateY(-2px); box-shadow:var(--sh); }
+
+        .hamburger { display:none; flex-direction:column; gap:5px; cursor:pointer; background:none; border:none; padding:.25rem; }
+        .hamburger span { display:block; width:26px; height:2.5px; background:var(--green); border-radius:3px; transition:var(--tr); }
+        .hamburger.open span:nth-child(1) { transform: rotate(45deg) translate(5px,5px); }
+        .hamburger.open span:nth-child(2) { opacity:0; }
+        .hamburger.open span:nth-child(3) { transform: rotate(-45deg) translate(5px,-5px); }
+
+        .mobile-nav {
+            position:fixed; inset:0; z-index:800; background:var(--white);
+            display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2rem;
+            opacity:0; pointer-events:none; transform:translateY(-8px);
+            transition: opacity .3s ease, transform .3s ease;
+        }
+        .mobile-nav.open { opacity:1; pointer-events:all; transform:none; }
+        .mobile-nav a {
+            font-family:var(--font-h); font-size:1.9rem; font-weight:800;
+            color:var(--dark); text-decoration:none; transition:var(--tr);
+        }
+        .mobile-nav a:hover { color:var(--green); }
+        .mobile-nav .m-cta { color:var(--green) !important; }
+
+        #hero {
+            min-height: 100vh; position:relative;
+            display:flex; align-items:center; overflow:hidden;
+        }
+
+        .hero-bg {
+            position:absolute; inset:0;
+            background-size: cover;
+            background-position: center;
+            filter: brightness(.38);
+            transform: scale(1.05);
+            animation: heroZoom 12s ease-in-out infinite alternate;
+        }
+        @keyframes heroZoom {
+            from { transform: scale(1.05); }
+            to   { transform: scale(1.12); }
+        }
+
+        .hero-inner {
+            position:relative; z-index:1; width:100%; padding-top:80px;
+        }
+
+        .hero-chip {
+            display:inline-flex; align-items:center; gap:.5rem;
+            background:rgba(130,184,150,.18); border:1px solid rgba(130,184,150,.4);
+            color:var(--green-light); padding:.4rem 1rem; border-radius:50px;
+            font-size:.82rem; font-weight:600; letter-spacing:.5px;
+            margin-bottom:1.5rem;
+            animation: fadeUp .7s ease both;
+        }
+        .hero-chip i { animation: pulse-icon 2s infinite; }
+
+        .hero-h1 {
+            font-family:var(--font-h); font-size:clamp(2.6rem,6.5vw,5.2rem);
+            font-weight:900; color:var(--white); line-height:1.05;
+            margin-bottom:1.4rem;
+            animation: fadeUp .7s .15s ease both;
+        }
+        .hero-h1 em { color:var(--green-light); font-style:normal; }
+
+        .hero-sub {
+            font-size:clamp(.95rem,2vw,1.2rem); color:rgba(255,255,255,.82);
+            max-width:580px; line-height:1.8; margin-bottom:2.5rem;
+            animation: fadeUp .7s .3s ease both;
+        }
+
+        .hero-btns {
+            display:flex; gap:1rem; flex-wrap:wrap;
+            animation: fadeUp .7s .45s ease both;
+        }
+
+        .btn {
+            display:inline-flex; align-items:center; gap:.55rem;
+            padding:.9rem 2rem; border-radius:50px; font-weight:700;
+            font-size:.95rem; font-family:var(--font-b); text-decoration:none;
+            transition: var(--tr); cursor:pointer; border:2px solid transparent;
+        }
+        .btn-green {
+            background:var(--green); color:var(--white); border-color:var(--green);
+        }
+        .btn-green:hover {
+            background:var(--green-dark); border-color:var(--green-dark);
+            transform:translateY(-3px); box-shadow:0 10px 30px rgba(74,124,89,.45);
+        }
+        .btn-ghost {
+            background:transparent; color:var(--white); border-color:rgba(255,255,255,.45);
+        }
+        .btn-ghost:hover {
+            background:rgba(255,255,255,.12); border-color:var(--white);
+            transform:translateY(-3px);
+        }
+        .btn i { transition: transform var(--tr); }
+        .btn:hover i { transform: translateX(4px); }
+
+        .hero-stats {
+            display:flex; gap:3rem; margin-top:4rem; flex-wrap:wrap;
+            animation: fadeUp .7s .6s ease both;
+        }
+        .stat-n { font-family:var(--font-h); font-size:2.1rem; font-weight:900; color:var(--green-light); display:block; }
+        .stat-l { font-size:.72rem; color:rgba(255,255,255,.6); text-transform:uppercase; letter-spacing:1.5px; }
+
+        .scroll-cue {
+            position:absolute; bottom:2rem; left:50%; transform:translateX(-50%); z-index:1;
+            color:rgba(255,255,255,.5); font-size:1.4rem; text-decoration:none;
+            animation: bounceY 2s infinite;
+        }
+        @keyframes bounceY { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(-10px)} }
+
+        .strip { background:var(--green); padding:2rem 1.5rem; }
+        .strip-grid {
+            max-width:1200px; margin:0 auto;
+            display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:1.5rem;
+        }
+        .strip-item { display:flex; align-items:center; gap:1rem; color:var(--white); }
+        .strip-icon {
+            width:50px; height:50px; background:rgba(255,255,255,.15); border-radius:12px;
+            display:flex; align-items:center; justify-content:center; font-size:1.25rem;
+            flex-shrink:0; transition:var(--tr);
+        }
+        .strip-item:hover .strip-icon { background:rgba(255,255,255,.28); transform:scale(1.12) rotate(6deg); }
+        .strip-item strong { display:block; font-weight:600; font-size:.92rem; }
+        .strip-item span { font-size:.78rem; opacity:.78; }
+
+        /* ─── SERVICES ───────────────────────────────────────────── */
+        #services { padding:6rem 0; background:var(--cream); }
+        #services .wrap { padding:0 3.5rem; }
+        .services-hd { text-align:center; margin-bottom:3.5rem; }
+        .services-hd .sec-sub { margin:0 auto; text-align:center; }
+
+        .slider-outer { position:relative; }
+        .slider-track-wrap {
+            overflow:hidden;
+            cursor:grab;
+            padding:1rem 0 2.5rem;
+            -webkit-user-select:none; user-select:none;
+        }
+        .slider-track-wrap:active { cursor:grabbing; }
+        .cards {
+            display:flex; gap:1.75rem;
+            width:max-content;
+            transition: transform .45s cubic-bezier(.25,.8,.25,1);
+            will-change: transform;
+        }
+
+        .slider-arrow {
+            position:absolute; top:50%; transform:translateY(-50%);
+            width:46px; height:46px; border-radius:50%;
+            background:var(--white); border:none; cursor:pointer;
+            display:flex; align-items:center; justify-content:center;
+            color:var(--green); font-size:1.1rem;
+            box-shadow:var(--sh2); transition:var(--tr); z-index:10;
+        }
+        .slider-arrow:hover { background:var(--green); color:var(--white); transform:translateY(-50%) scale(1.1); }
+        .slider-arrow.prev { left:-.75rem; }
+        .slider-arrow.next { right:-.75rem; }
+        .slider-arrow:disabled { opacity:.3; pointer-events:none; }
+
+        .slider-dots {
+            display:flex; justify-content:center; gap:.55rem; margin-top:1.5rem;
+        }
+        .dot {
+            width:8px; height:8px; border-radius:50%;
+            background:var(--green-light); border:none; cursor:pointer;
+            transition:var(--tr); padding:0;
+        }
+        .dot.active { width:24px; border-radius:4px; background:var(--green); }
+
+        .card {
+            background:var(--white); border-radius:var(--r);
+            overflow:hidden; box-shadow:var(--sh); transition:var(--tr); cursor:default;
+            flex:0 0 300px;
+        }
+        .card:hover { transform:translateY(-8px); box-shadow:var(--sh2); }
+
+        .card-img { position:relative; height:195px; overflow:hidden; }
+        .card-img img { width:100%; height:100%; object-fit:cover; transition:transform .55s ease; }
+        .card:hover .card-img img { transform:scale(1.09); }
+
+        .card-badge {
+            position:absolute; bottom:1rem; left:1.4rem; width:48px; height:48px;
+            background:var(--green); border-radius:11px;
+            display:flex; align-items:center; justify-content:center;
+            color:var(--white); font-size:1.2rem;
+            box-shadow:0 4px 14px rgba(74,124,89,.4); transition:var(--tr);
+        }
+        .card:hover .card-badge { transform:rotate(12deg) scale(1.1); }
+
+        .card-body { padding:1.4rem 1.4rem 1.5rem; }
+        .card-title { font-family:var(--font-h); font-size:1.2rem; font-weight:800; margin-top:0; margin-bottom:.75rem; }
+        .card-list { list-style:none; }
+        .card-list li {
+            padding:.3rem 0; font-size:.87rem; color:var(--grey);
+            display:flex; align-items:center; gap:.6rem;
+            border-bottom:1px solid #f0f0f0;
+        }
+        .card-list li:last-child { border:none; }
+        .card-list li::before { content:''; width:6px; height:6px; border-radius:50%; background:var(--green); flex-shrink:0; }
+
+        .banner { background:var(--red); padding:3.5rem 1.5rem; text-align:center; }
+        .banner-text {
+            font-family:var(--font-h); font-size:clamp(1.15rem,3vw,1.8rem);
+            font-weight:800; color:var(--white); max-width:820px; margin:0 auto; line-height:1.6;
+        }
+        .banner-text strong { border-bottom:3px solid rgba(255,255,255,.45); }
+
+        #why { padding:6rem 1.5rem; background:var(--white); }
+        .why-grid { display:grid; grid-template-columns:1fr 1fr; gap:5rem; align-items:center; }
+
+        .why-img-wrap { position:relative; }
+        .why-img-wrap img { width:100%; height:600px; object-fit:cover; border-radius:var(--r); }
+        .why-card {
+            position:absolute; bottom:2rem; right:-2rem;
+            background:var(--white); border-radius:var(--r); padding:1.4rem 1.8rem;
+            box-shadow:var(--sh2); text-align:center; min-width:150px;
+        }
+        .why-card-n { font-family:var(--font-h); font-size:2.8rem; font-weight:900; color:var(--green); line-height:1; display:block; }
+        .why-card-l { font-size:.76rem; color:var(--grey); margin-top:.25rem; }
+
+        .why-points { margin-top:2rem; display:flex; flex-direction:column; gap:1.4rem; }
+        .why-pt { display:flex; gap:1rem; align-items:flex-start; }
+        .why-pt-icon {
+            width:50px; height:50px; background:var(--green-muted); border-radius:12px;
+            display:flex; align-items:center; justify-content:center;
+            color:var(--green); font-size:1.2rem; flex-shrink:0; transition:var(--tr);
+        }
+        .why-pt:hover .why-pt-icon { background:var(--green); color:var(--white); transform:scale(1.12); }
+        .why-pt-text h4 { font-weight:700; font-size:1rem; margin-bottom:.25rem; }
+        .why-pt-text p { font-size:.87rem; color:var(--grey); line-height:1.7; }
+
+        #contact { padding:6rem 1.5rem; background:var(--dark); color:var(--white); }
+        .contact-grid { display:grid; grid-template-columns:1fr 1fr; gap:5rem; align-items:start; }
+        #contact .sec-title { color:var(--white); }
+        #contact .sec-sub  { color:rgba(255,255,255,.55); }
+
+        .c-details { margin-top:2rem; display:flex; flex-direction:column; gap:1.25rem; }
+        .c-item {
+            display:flex; align-items:center; gap:1rem;
+            text-decoration:none; color:var(--white); transition:var(--tr);
+        }
+        .c-item:hover { transform:translateX(5px); }
+        .c-icon {
+            width:50px; height:50px; background:rgba(255,255,255,.07); border-radius:12px;
+            display:flex; align-items:center; justify-content:center;
+            color:var(--green-light); font-size:1.1rem; flex-shrink:0; transition:var(--tr);
+        }
+        .c-item:hover .c-icon { background:var(--green); color:var(--white); }
+        .c-label { display:block; font-size:.72rem; color:rgba(255,255,255,.45); text-transform:uppercase; letter-spacing:1px; margin-bottom:.15rem; }
+        .c-val   { font-weight:500; font-size:.97rem; }
+
+        .area-box {
+            margin-top:2rem; padding:1.25rem 1.5rem;
+            background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1);
+            border-radius:var(--r);
+        }
+        .area-box h4 { font-size:.75rem; text-transform:uppercase; letter-spacing:2px; color:var(--green-light); margin-bottom:.6rem; }
+        .area-box p  { font-size:.87rem; color:rgba(255,255,255,.65); line-height:1.9; }
+
+        .form-card {
+            background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1);
+            border-radius:var(--r); padding:2.5rem;
+        }
+        .form-card h3 { font-family:var(--font-h); font-size:1.5rem; font-weight:800; margin-bottom:1.5rem; }
+
+        .fg { margin-bottom:1.1rem; }
+        .fg label { display:block; font-size:.82rem; color:rgba(255,255,255,.55); margin-bottom:.45rem; }
+        .fg input, .fg textarea, .fg select {
+            width:100%; padding:.82rem 1rem;
+            background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.12);
+            border-radius:9px; color:var(--white); font-family:var(--font-b); font-size:.93rem;
+            transition:var(--tr);
+        }
+        .fg input::placeholder, .fg textarea::placeholder { color:rgba(255,255,255,.28); }
+        .fg input:focus, .fg textarea:focus, .fg select:focus {
+            outline:none; border-color:var(--green-light); background:rgba(255,255,255,.11);
+        }
+        .fg select option { background:var(--dark2); color:var(--white); }
+        .fg textarea { resize:vertical; min-height:110px; }
+
+        .btn-submit {
+            width:100%; padding:.95rem; background:var(--green); color:var(--white);
+            border:none; border-radius:9px; font-family:var(--font-b); font-size:.97rem;
+            font-weight:700; cursor:pointer; transition:var(--tr);
+            display:flex; align-items:center; justify-content:center; gap:.55rem;
+        }
+        .btn-submit:hover { background:var(--green-dark); transform:translateY(-2px); box-shadow:0 8px 26px rgba(74,124,89,.4); }
+        .btn-submit i { transition:var(--tr); }
+        .btn-submit:hover i { transform:translateX(4px); }
+
+        .success-msg {
+            display:none; margin-top:1rem; padding:.9rem 1rem;
+            background:rgba(74,124,89,.2); border:1px solid var(--green-light);
+            border-radius:8px; color:var(--green-light); text-align:center; font-size:.9rem;
+        }
+
+        footer {
+            background:#0d0d1a; padding:1.75rem 1.5rem;
+        }
+        .foot-inner {
+            max-width:1200px; margin:0 auto;
+            display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;
+        }
+        .foot-logo { font-family:var(--font-h); font-size:1.3rem; font-weight:900; color:var(--green-light); }
+        .foot-logo em { color:var(--red); font-style:normal; }
+        .foot-copy { font-size:.82rem; color:rgba(255,255,255,.35); }
+        .foot-nav { display:flex; gap:1.5rem; list-style:none; }
+        .foot-nav a { color:rgba(255,255,255,.35); text-decoration:none; font-size:.82rem; transition:var(--tr); }
+        .foot-nav a:hover { color:var(--green-light); }
+
+        .float-btn {
+            position:fixed; bottom:2rem; right:2rem; z-index:800;
+            width:58px; height:58px; background:var(--green); color:var(--white);
+            border-radius:50%; display:flex; align-items:center; justify-content:center;
+            font-size:1.45rem; text-decoration:none;
+            box-shadow:0 4px 22px rgba(74,124,89,.55);
+            transition:var(--tr);
+            animation: ringPulse 2.5s infinite;
+        }
+        .float-btn:hover { background:var(--green-dark); transform:scale(1.1); animation:none; }
+        @keyframes ringPulse {
+            0%   { box-shadow:0 0 0 0 rgba(74,124,89,.7); }
+            70%  { box-shadow:0 0 0 16px rgba(74,124,89,0); }
+            100% { box-shadow:0 0 0 0 rgba(74,124,89,0); }
+        }
+
+        @keyframes fadeUp {
+            from { opacity:0; transform:translateY(22px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+        @keyframes pulse-icon {
+            0%,100% { transform:scale(1); }
+            50%      { transform:scale(1.25); }
+        }
+
+        @media (max-width:900px) {
+            .why-grid, .contact-grid { grid-template-columns:1fr; gap:3rem; }
+            .why-img-wrap img { height:340px; }
+            .why-card { right:1rem; bottom:1rem; }
+        }
+
+        @media (max-width:768px) {
+            .nav-links { display:none; }
+            .hamburger { display:flex; }
+            section, #services, #why, #contact { padding:4rem 1.25rem; }
+            .hero-stats { gap:1.75rem; }
+            .hero-btns { flex-direction:column; align-items:flex-start; }
+        }
+
+        @media (max-width:480px) {
+            .card { flex:0 0 82vw; }
+            .slider-arrow { display:none; }
+            .strip-grid { grid-template-columns:1fr 1fr; }
+            .hero-stats { flex-wrap:wrap; gap:1.25rem; }
+            .foot-inner { flex-direction:column; text-align:center; }
+        }
+    </style>
+</head>
+<body>
+
+<nav id="nav">
+    <a href="#hero" class="nav-logo">Ház<em>Doki</em></a>
+
+    <ul class="nav-links">
+        <li><a href="#services">Szolgáltatások</a></li>
+        <li><a href="#why">Rólunk</a></li>
+        <li><a href="#contact">Kapcsolat</a></li>
+        <li><a href="tel:+36302331508" class="nav-cta"><i class="fa-solid fa-phone"></i> &nbsp;Hívjon most</a></li>
+    </ul>
+
+    <button class="hamburger" id="hamburger" aria-label="Menü" onclick="toggleNav()">
+        <span></span><span></span><span></span>
+    </button>
+</nav>
+
+<nav class="mobile-nav" id="mobileNav">
+    <a href="#services" onclick="toggleNav()">Szolgáltatások</a>
+    <a href="#why"      onclick="toggleNav()">Rólunk</a>
+    <a href="#contact"  onclick="toggleNav()">Kapcsolat</a>
+    <a href="tel:+36302331508" class="m-cta" onclick="toggleNav()">
+        <i class="fa-solid fa-phone"></i> &nbsp;+36 30 233 1508
+    </a>
+</nav>
+
+
+<section id="hero">
+    <div class="hero-bg" id="heroBg"></div>
+    <div class="hero-inner">
+        <div class="wrap">
+            <div class="hero-chip">
+                <i class="fa-solid fa-bolt"></i>
+                24 órán belül a helyszínen
+            </div>
+
+            <h1 class="hero-h1">
+                Gyors megoldás<br>
+                <em>minden hibára.</em>
+            </h1>
+
+            <p class="hero-sub">
+                Professzionális víz-, fűtés-, villany- és lakatosszolgáltatások,
+                számlával és munkalappal – megbízható szakemberektől.
+            </p>
+
+            <div class="hero-btns">
+                <a href="tel:+36302331508" class="btn btn-green">
+                    <i class="fa-solid fa-phone"></i> Hívjon most
+                </a>
+                <a href="#services" class="btn btn-ghost">
+                    <i class="fa-solid fa-list-ul"></i> Szolgáltatások
+                </a>
+            </div>
+
+            <div class="hero-stats">
+                <div>
+                    <span class="stat-n">24h</span>
+                    <span class="stat-l">Kiszállás</span>
+                </div>
+                <div>
+                    <span class="stat-n">10+</span>
+                    <span class="stat-l">Terület</span>
+                </div>
+                <div>
+                    <span class="stat-n">100%</span>
+                    <span class="stat-l">Garancia</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <a href="#strip" class="scroll-cue"><i class="fa-solid fa-chevron-down"></i></a>
+</section>
+
+
+<div id="strip" class="strip">
+    <div class="strip-grid">
+        <div class="strip-item reveal">
+            <div class="strip-icon"><i class="fa-solid fa-file-invoice"></i></div>
+            <div>
+                <strong>Számlával &amp; munkalappal</strong>
+                <span>Átlátható, dokumentált munka</span>
+            </div>
+        </div>
+        <div class="strip-item reveal">
+            <div class="strip-icon"><i class="fa-solid fa-clock"></i></div>
+            <div>
+                <strong>24 órán belüli kiszállás</strong>
+                <span>Gyors reagálás, gyors javítás</span>
+            </div>
+        </div>
+        <div class="strip-item reveal">
+            <div class="strip-icon"><i class="fa-solid fa-shield-halved"></i></div>
+            <div>
+                <strong>Garanciális munka</strong>
+                <span>Minőségi kivitelezés</span>
+            </div>
+        </div>
+        <div class="strip-item reveal">
+            <div class="strip-icon"><i class="fa-solid fa-location-dot"></i></div>
+            <div>
+                <strong>XVII. kerület &amp; környéke</strong>
+                <span>Helyi, tapasztalt szakemberek</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section id="services">
+    <div class="wrap">
+        <div class="services-hd">
+            <span class="sec-label reveal">Tevékenységi kör</span>
+            <h2 class="sec-title reveal">Miben segíthetünk?</h2>
+            <p class="sec-sub reveal" style="text-align:center;">
+                Széles körű szakmai megoldásokat kínálunk otthona karbantartásához és gyors helyreállításához.
+            </p>
+        </div>
+
+        <div class="slider-outer">
+        <button class="slider-arrow prev" id="sliderPrev" aria-label="Előző"><i class="fa-solid fa-chevron-left"></i></button>
+        <div class="slider-track-wrap" id="sliderWrap">
+        <div class="cards" id="sliderTrack"></div>
+        </div>
+        <button class="slider-arrow next" id="sliderNext" aria-label="Következő"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+        <div class="slider-dots" id="sliderDots"></div>
+    </div>
+</section>
+
+<div class="banner">
+    <p class="banner-text reveal">
+        <strong>Számlával és munkalappal</strong>, 24 órán belül a helyszínen vagyunk, és a hibát elhárítjuk.
+    </p>
+</div>
+
+<section id="why">
+    <div class="wrap">
+        <div class="why-grid">
+
+            <div class="why-img-wrap reveal">
+                <img id="whyImg" src="" alt="Szakember munkában" loading="lazy">
+                <div class="why-card">
+                    <span class="why-card-n">24h</span>
+                    <div class="why-card-l">Kiszállási garancia</div>
+                </div>
+            </div>
+
+            <div class="why-content">
+                <span class="sec-label reveal">Miért válasszon minket?</span>
+                <h2 class="sec-title reveal">Gyors, megbízható,<br>szakszerű</h2>
+                <p class="sec-sub reveal">
+                    Tapasztalt szakembereink készen állnak, hogy gyorsan és hatékonyan oldják meg otthona problémáit.
+                </p>
+
+                <div class="why-points">
+
+                    <div class="why-pt reveal">
+                        <div class="why-pt-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                        <div class="why-pt-text">
+                            <h4>Gyors reagálási idő</h4>
+                            <p>24 órán belül garantáltan a helyszínen vagyunk,<br>hétfőtől péntekig 08:00–20:00 között.</p>
+                        </div>
+                    </div>
+
+                    <div class="why-pt reveal">
+                        <div class="why-pt-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                        <div class="why-pt-text">
+                            <h4>Átlátható árazás</h4>
+                            <p>Minden munkához számlát és munkalapot adunk – nincsenek rejtett költségek.</p>
+                        </div>
+                    </div>
+
+                    <div class="why-pt reveal">
+                        <div class="why-pt-icon"><i class="fa-solid fa-wrench"></i></div>
+                        <div class="why-pt-text">
+                            <h4>Szakképzett mesterek</h4>
+                            <p>Csapatunk tapasztalt szakemberekből áll, akik büszkék munkájuk minőségére.</p>
+                        </div>
+                    </div>
+
+                    <div class="why-pt reveal">
+                        <div class="why-pt-icon"><i class="fa-solid fa-map-location-dot"></i></div>
+                        <div class="why-pt-text">
+                            <h4>Kiterjedt lefedettség</h4>
+                            <p>XVII. kerület, Ecser, Pécel, Maglód, Gyömrő, Péteri, Mende és környéke.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<section id="contact">
+    <div class="wrap">
+        <div class="contact-grid">
+
+            <div class="contact-info">
+                <span class="sec-label reveal">Elérhetőség</span>
+                <h2 class="sec-title reveal">Vegye fel velünk<br>a kapcsolatot</h2>
+                <p class="sec-sub reveal">
+                    Ne habozzon! Hívjon minket, írjon e-mailt, vagy töltse ki az alábbi űrlapot.
+                </p>
+
+                <div class="c-details">
+                    <a href="tel:+36302331508" class="c-item reveal">
+                        <div class="c-icon"><i class="fa-solid fa-phone"></i></div>
+                        <div>
+                            <span class="c-label">Telefon</span>
+                            <span class="c-val">+36 30 233 1508</span>
+                        </div>
+                    </a>
+                    <a href="mailto:hazdoki2024@gmail.com" class="c-item reveal">
+                        <div class="c-icon"><i class="fa-solid fa-envelope"></i></div>
+                        <div>
+                            <span class="c-label">E-mail</span>
+                            <span class="c-val">hazdoki2024@gmail.com</span>
+                        </div>
+                    </a>
+                    <div class="c-item reveal">
+                        <div class="c-icon"><i class="fa-solid fa-calendar-check"></i></div>
+                        <div>
+                            <span class="c-label">Nyitvatartás</span>
+                            <span class="c-val">Hétfő – Péntek &nbsp;|&nbsp; 08:00 – 20:00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="area-box reveal">
+                    <h4><i class="fa-solid fa-location-dot"></i> &nbsp;Szolgáltatási terület</h4>
+                    <p>17. kerület, Ecser, Pécel, Maglód, Gyömrő, Péteri, Mende, Pusztaszentistván, Sülysáp, Monor</p>
+                </div>
+            </div>
+
+            <div class="form-card reveal">
+                <h3>Üzenjen nekünk</h3>
+                <form id="contactForm" onsubmit="submitForm(event)" novalidate>
+                    <div class="fg">
+                        <label>Neve *</label>
+                        <input type="text" name="name" placeholder="pl. Kovács János" required>
+                    </div>
+                    <div class="fg">
+                        <label>Telefonszám *</label>
+                        <input type="tel" name="phone" placeholder="+36 30 000 0000" required>
+                    </div>
+                    <div class="fg">
+                        <label>Szolgáltatás típusa</label>
+                        <select name="service">
+                            <option value="">Válasszon...</option>
+                            <option>Víz- és fűtésszerelés</option>
+                            <option>Kisebb burkolatjavítások</option>
+                            <option>Villanyszerelés</option>
+                            <option>Lakatos munkák</option>
+                            <option>Egyéb</option>
+                        </select>
+                    </div>
+                    <div class="fg">
+                        <label>Írja le a problémát</label>
+                        <textarea name="message" placeholder="Röviden írja le, miben tudunk segíteni..."></textarea>
+                    </div>
+                    <button type="submit" class="btn-submit">
+                        Üzenet küldése &nbsp;<i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                    <div class="success-msg" id="successMsg">
+                        <i class="fa-solid fa-circle-check"></i> &nbsp;Üzenet elküldve! Hamarosan felvesszük Önnel a kapcsolatot.
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="foot-inner">
+        <div class="foot-logo">Ház<em>Doki</em></div>
+        <p class="foot-copy">© 2026 HázDoki — Minden jog fenntartva.</p>
+        <ul class="foot-nav">
+            <li><a href="#services">Szolgáltatások</a></li>
+            <li><a href="#why">Rólunk</a></li>
+            <li><a href="#contact">Kapcsolat</a></li>
+        </ul>
+    </div>
+</footer>
+
+<a href="tel:+36302331508" class="float-btn" title="Hívjon most!">
+    <i class="fa-solid fa-phone"></i>
+</a>
+
+
+<script>
+    const IMAGES = {
+        hero: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&q=80',
+        whyUs: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=900&q=80',
+        services: [
+            {
+                src:   'https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=800&q=80',
+                alt:   'Vízszerelés',
+                icon:  'fa-droplet',
+                title: 'Víz- és fűtésszerelés',
+                items: ['Duguláselhárítás','Csőtörés javítása','Csapok, szaniterek, WC javítása &amp; cseréje','Lefolyók és szifonok tisztítása','Bojlerek cseréje','Radiátorok és radiátorszelepek cseréje']
+            },
+            {
+                src:   'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80',
+                alt:   'Burkolatjavítás',
+                icon:  'fa-border-all',
+                title: 'Kisebb burkolatjavítások',
+                items: ['Padló- és falburkolat javítása','Csempe és járólap pótlása','Fugázás és tömítés','Kisebb betonozási munkák']
+            },
+            {
+                src:   'https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=800&q=80',
+                alt:   'Villanyszerelés',
+                icon:  'fa-bolt',
+                title: 'Villanyszerelés',
+                items: ['Konnektorok és kapcsolók cseréje','Világítótestek javítása és cseréje','Biztosíték és elosztó problémák','Villamos hálózat felülvizsgálat']
+            },
+            {
+                src:   'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=800&q=80',
+                alt:   'Lakatos munkák',
+                icon:  'fa-key',
+                title: 'Lakatos munkák',
+                items: ['Kerítések és kapuk javítása','Kapu gyártása és felszerelése','Ajtózárak javítása és cseréje','Kapuzárak javítása és cseréje']
+            }
+        ]
+    };
+
+    document.getElementById('heroBg').style.backgroundImage = `url('${IMAGES.hero}')`;
+    document.getElementById('whyImg').src = IMAGES.whyUs;
+
+    (function buildServiceCards() {
+        const track = document.getElementById('sliderTrack');
+        IMAGES.services.forEach(s => {
+            const card = document.createElement('div');
+            card.className = 'card reveal';
+            card.innerHTML = `
+                <div class="card-img">
+                    <img src="${s.src}" alt="${s.alt}" loading="lazy">
+                    <div class="card-badge"><i class="fa-solid ${s.icon}"></i></div>
+                </div>
+                <div class="card-body">
+                    <h3 class="card-title">${s.title}</h3>
+                    <ul class="card-list">${s.items.map(i => `<li>${i}</li>`).join('')}</ul>
+                </div>`;
+            track.appendChild(card);
+        });
+    })();
+
+    function toggleNav() {
+        const btn  = document.getElementById('hamburger');
+        const menu = document.getElementById('mobileNav');
+        btn.classList.toggle('open');
+        menu.classList.toggle('open');
+        document.body.style.overflow = menu.classList.contains('open') ? 'hidden' : '';
+    }
+
+    const io = new IntersectionObserver((entries) => {
+        entries.forEach((entry, i) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => entry.target.classList.add('in'), i * 90);
+                io.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+    const navbar = document.getElementById('nav');
+    window.addEventListener('scroll', () => {
+        navbar.style.boxShadow = window.scrollY > 60
+            ? '0 2px 30px rgba(0,0,0,.18)'
+            : '0 2px 16px rgba(0,0,0,.07)';
+    }, { passive: true });
+
+    const sections   = document.querySelectorAll('section[id]');
+    const navAnchors = document.querySelectorAll('.nav-links a');
+    window.addEventListener('scroll', () => {
+        let cur = '';
+        sections.forEach(s => {
+            if (window.scrollY >= s.offsetTop - 180) cur = s.id;
+        });
+        navAnchors.forEach(a => {
+            a.style.color = a.getAttribute('href') === `#${cur}` ? 'var(--green)' : '';
+        });
+    }, { passive: true });
+
+    function submitForm(e) {
+        e.preventDefault();
+        const btn   = e.target.querySelector('.btn-submit');
+        const msg   = document.getElementById('successMsg');
+        const name  = e.target.name.value.trim();
+        const phone = e.target.phone.value.trim();
+
+        if (!name || !phone) {
+            btn.style.background = 'var(--red)';
+            btn.textContent = 'Kérem töltse ki a kötelező mezőket!';
+            setTimeout(() => {
+                btn.style.background = '';
+                btn.innerHTML = 'Üzenet küldése &nbsp;<i class="fa-solid fa-paper-plane"></i>';
+            }, 2500);
+            return;
+        }
+
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> &nbsp;Küldés...';
+        btn.disabled = true;
+
+        setTimeout(() => {
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> &nbsp;Elküldve!';
+            msg.style.display = 'block';
+            setTimeout(() => {
+                btn.innerHTML = 'Üzenet küldése &nbsp;<i class="fa-solid fa-paper-plane"></i>';
+                btn.disabled = false;
+                msg.style.display = 'none';
+                e.target.reset();
+            }, 3500);
+        }, 1600);
+    }
+
+    (function initSlider() {
+        const track   = document.getElementById('sliderTrack');
+        const wrap    = document.getElementById('sliderWrap');
+        const prevBtn = document.getElementById('sliderPrev');
+        const nextBtn = document.getElementById('sliderNext');
+        const dotsEl  = document.getElementById('sliderDots');
+        const cards   = track.querySelectorAll('.card');
+        const total   = cards.length;
+        let current   = 0;
+        let isDragging = false, startX = 0, startOffset = 0, currentOffset = 0;
+
+        cards.forEach((_, i) => {
+            const d = document.createElement('button');
+            d.className = 'dot' + (i === 0 ? ' active' : '');
+            d.setAttribute('aria-label', `Kártya ${i + 1}`);
+            d.addEventListener('click', () => goTo(i));
+            dotsEl.appendChild(d);
+        });
+
+        function cardWidth() { return cards[0].getBoundingClientRect().width + 28; }
+        function getMaxOffset() { return Math.max(0, track.scrollWidth - wrap.clientWidth); }
+
+        function goTo(idx) {
+            current = Math.max(0, Math.min(idx, total - 1));
+            const offset = Math.min(current * cardWidth(), getMaxOffset());
+            currentOffset = offset;
+            track.style.transform = `translateX(-${offset}px)`;
+            track.style.transition = 'transform .45s cubic-bezier(.25,.8,.25,1)';
+            prevBtn.disabled = current === 0;
+            nextBtn.disabled = offset >= getMaxOffset();
+            dotsEl.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
+        }
+
+        prevBtn.addEventListener('click', () => goTo(current - 1));
+        nextBtn.addEventListener('click', () => goTo(current + 1));
+        goTo(0);
+
+        function onDragStart(x) { isDragging = true; startX = x; startOffset = currentOffset; track.style.transition = 'none'; }
+        function onDragMove(x) {
+            if (!isDragging) return;
+            const raw = Math.max(0, Math.min(startOffset + (startX - x), getMaxOffset()));
+            track.style.transform = `translateX(-${raw}px)`;
+        }
+        function onDragEnd(x) {
+            if (!isDragging) return;
+            isDragging = false;
+            const delta = startX - x;
+            if (Math.abs(delta) > 50) goTo(delta > 0 ? current + 1 : current - 1);
+            else goTo(current);
+        }
+
+        wrap.addEventListener('mousedown',  e => onDragStart(e.clientX));
+        window.addEventListener('mousemove', e => { if (isDragging) { e.preventDefault(); onDragMove(e.clientX); } });
+        window.addEventListener('mouseup',   e => onDragEnd(e.clientX));
+        wrap.addEventListener('touchstart', e => onDragStart(e.touches[0].clientX), { passive:true });
+        wrap.addEventListener('touchmove',  e => onDragMove(e.touches[0].clientX),  { passive:true });
+        wrap.addEventListener('touchend',   e => onDragEnd(e.changedTouches[0].clientX));
+        window.addEventListener('resize',   () => goTo(current), { passive:true });
+    })();
+
+    document.querySelectorAll('.strip-icon, .why-pt-icon, .c-icon').forEach(el => {
+        el.addEventListener('mouseenter', () => { el.style.transform = 'scale(1.18) rotate(7deg)'; });
+        el.addEventListener('mouseleave', () => { el.style.transform = ''; });
+    });
+</script>
+
+</body>
+</html>
