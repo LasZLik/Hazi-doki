@@ -283,6 +283,7 @@
             padding:.3rem 0; font-size:.87rem; color:var(--grey);
             display:flex; align-items:center; gap:.6rem;
             border-bottom:1px solid #f0f0f0;
+            word-break:break-word; overflow-wrap:break-word;
         }
         .card-list li:last-child { border:none; }
         .card-list li::before { content:''; width:6px; height:6px; border-radius:50%; background:var(--green); flex-shrink:0; }
@@ -432,12 +433,13 @@
             .nav-links { display:none; }
             .hamburger { display:flex; }
             section, #services, #why, #contact { padding:4rem 1.25rem; }
+            #services .wrap { padding:0 1.25rem; }
             .hero-stats { gap:1.75rem; }
             .hero-btns { flex-direction:column; align-items:flex-start; }
         }
 
         @media (max-width:480px) {
-            .card { flex:0 0 82vw; }
+            .card { flex:0 0 calc(100vw - 2.5rem); max-width:100%; }
             .slider-arrow { display:none; }
             .strip-grid { grid-template-columns:1fr 1fr; }
             .hero-stats { flex-wrap:wrap; gap:1.25rem; }
