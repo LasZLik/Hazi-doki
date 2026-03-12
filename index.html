@@ -497,7 +497,7 @@
 
             <p class="hero-sub">
                 Professzionális víz-, fűtés-, villany- és lakatosszolgáltatások,
-                számlával és munkalappal – megbízható szakemberektől.
+                számlával és munkalappal – megbízható szakembertől.
             </p>
 
             <div class="hero-btns">
@@ -658,7 +658,7 @@
                 <span class="sec-label reveal">Elérhetőség</span>
                 <h2 class="sec-title reveal">Vegye fel velünk<br>a kapcsolatot</h2>
                 <p class="sec-sub reveal">
-                    Ne habozzon! Hívjon minket, írjon e-mailt, vagy töltse ki az alábbi űrlapot.
+                    Ne habozzon! Hívjon, írjon e-mailt, vagy töltse ki az alábbi űrlapot.
                 </p>
 
                 <div class="c-details">
@@ -669,11 +669,11 @@
                             <span class="c-val">+36 30 233 1508</span>
                         </div>
                     </a>
-                    <a href="mailto:hazdoki2024@gmail.com" class="c-item reveal">
+                    <a href="mailto:hajduakos04@gmail.com" class="c-item reveal">
                         <div class="c-icon"><i class="fa-solid fa-envelope"></i></div>
                         <div>
                             <span class="c-label">E-mail</span>
-                            <span class="c-val">hazdoki2024@gmail.com</span>
+                            <span class="c-val">hajduakos04@gmail.com</span>
                         </div>
                     </a>
                     <div class="c-item reveal">
@@ -686,17 +686,21 @@
                 </div>
 
                 <div class="area-box reveal">
-                    <h4><i class="fa-solid fa-location-dot"></i> &nbsp;Szolgáltatási terület</h4>
+                    <h4><i class="fa-solid fa-location-dot"></i> &nbsp;Szolgáltatási területek</h4>
                     <p>17. kerület, Ecser, Pécel, Maglód, Gyömrő, Péteri, Mende, Pusztaszentistván, Sülysáp, Monor</p>
                 </div>
             </div>
 
             <div class="form-card reveal">
                 <h3>Üzenjen nekünk</h3>
-                <form id="contactForm" onsubmit="submitForm(event)" novalidate>
+                <form id="contactForm" action="https://formspree.io/f/xreykbdn" method="POST" novalidate>
                     <div class="fg">
                         <label>Neve *</label>
                         <input type="text" name="name" placeholder="pl. Kovács János" required>
+                    </div>
+                    <div class="fg">
+                        <label>E-mail *</label>
+                        <input type="email" name="email" placeholder="valaki@pelda.hu" required>
                     </div>
                     <div class="fg">
                         <label>Telefonszám *</label>
@@ -844,12 +848,14 @@
 
     function submitForm(e) {
         e.preventDefault();
-        const btn   = e.target.querySelector('.btn-submit');
-        const msg   = document.getElementById('successMsg');
-        const name  = e.target.name.value.trim();
-        const phone = e.target.phone.value.trim();
+        const form = e.target;
+        const btn = form.querySelector('.btn-submit');
+        const msg = document.getElementById('successMsg');
+        const name = form.name.value.trim();
+        const email = form.email.value.trim();
+        const phone = form.phone.value.trim();
 
-        if (!name || !phone) {
+        if (!name || !email || !phone) {
             btn.style.background = 'var(--red)';
             btn.textContent = 'Kérem töltse ki a kötelező mezőket!';
             setTimeout(() => {
@@ -862,17 +868,38 @@
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> &nbsp;Küldés...';
         btn.disabled = true;
 
-        setTimeout(() => {
-            btn.innerHTML = '<i class="fa-solid fa-check"></i> &nbsp;Elküldve!';
-            msg.style.display = 'block';
+        // Submit to Formspree
+        fetch(form.action, {
+            method: 'POST',
+            body: new FormData(form),
+            headers: { 'Accept': 'application/json' }
+        })
+        .then(response => {
+            if (response.ok) {
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> &nbsp;Elküldve!';
+                msg.style.display = 'block';
+                setTimeout(() => {
+                    btn.innerHTML = 'Üzenet küldése &nbsp;<i class="fa-solid fa-paper-plane"></i>';
+                    btn.disabled = false;
+                    msg.style.display = 'none';
+                    form.reset();
+                }, 3500);
+            } else {
+                throw new Error('Hiba történt');
+            }
+        })
+        .catch(error => {
+            btn.style.background = 'var(--red)';
+            btn.textContent = 'Hiba! Próbálja újra.';
+            btn.disabled = false;
             setTimeout(() => {
+                btn.style.background = '';
                 btn.innerHTML = 'Üzenet küldése &nbsp;<i class="fa-solid fa-paper-plane"></i>';
-                btn.disabled = false;
-                msg.style.display = 'none';
-                e.target.reset();
-            }, 3500);
-        }, 1600);
+            }, 2500);
+        });
     }
+
+    document.getElementById('contactForm').addEventListener('submit', submitForm);
 
     (function initSlider() {
         const track   = document.getElementById('sliderTrack');
